@@ -15,7 +15,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  /* Fonte moderna e legível */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
             background-color: var(--background-color);
@@ -27,7 +27,7 @@
             margin: auto;
             padding: 20px;
             background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);  /* Sombra para um look profissional */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
 
@@ -39,7 +39,6 @@
 
         .hidden { display: none; }
 
-        /* Estilos para formulários */
         form {
             display: flex;
             flex-direction: column;
@@ -62,12 +61,11 @@
         }
 
         button:hover {
-            background-color: darken(var(--primary-color), 10%);  /* Efeito hover (use um polyfill se necessário) */
+            background-color: #45a049;  /* Cor alternativa para hover */
         }
 
         .error { color: var(--error-color); }
 
-        /* Tabela estilizada */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -88,7 +86,6 @@
             color: white;
         }
 
-        /* Layout responsivo */
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -99,13 +96,6 @@
             input, select, button {
                 width: 100%;
             }
-        }
-
-        /* Estilos específicos para seções */
-        .company-select {
-            width: 100%;
-            margin-bottom: 20px;
-            padding: 10px;
         }
 
         .dashboard-section {
@@ -120,7 +110,6 @@
     <div class="container">
         <h1>Sistema de Gestão Financeira</h1>
 
-        <!-- Seção de Login e Cadastro -->
         <div id="auth-section">
             <h2>Login ou Cadastro</h2>
             <button onclick="showRegister()">Cadastrar Novo Usuário</button>
@@ -181,7 +170,17 @@
             <div class="dashboard-section">
                 <h3>Transações da Empresa</h3>
                 <table id="transactions-table">
-                    <thead><tr><th>Data</th><th>Descrição</th><th>Serviços</th><th>Nota Fiscal</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Serviços</th>
+                            <th>Nota Fiscal</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
                     <tbody id="transactions-body"></tbody>
                 </table>
                 <p id="total-balance">Saldo Total: R$ 0.00</p>
@@ -204,31 +203,107 @@
         let companies = JSON.parse(localStorage.getItem('companies')) || [];
         let selectedCompanyId = null;
 
-        function showRegister() { document.getElementById('register-form').classList.remove('hidden'); document.getElementById('login-form').classList.add('hidden'); }
-        function showLogin() { document.getElementById('login-form').classList.remove('hidden'); document.getElementById('register-form').classList.add('hidden'); }
-        function registerUser() { /* Mesmo código anterior */ }
-        function loginUser() { /* Mesmo código */ if (user) { currentUser = user; document.getElementById('auth-section').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); loadCompanies(); } }
-        function logout() { currentUser = null; document.getElementById('dashboard').classList.add('hidden'); document.getElementById('auth-section').classList.remove('hidden'); }
+        function showRegister() {
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+        }
 
-        function loadCompanies() { const select = document.getElementById('company-select'); select.innerHTML = '<option value="">Selecione uma empresa</option>'; companies.forEach(c => { const option = document.createElement('option'); option.value = c.id; option.textContent = c.name; select.appendChild(option); }); }
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        }
 
-        function addCompany() { const name = document.getElementById('company-name').value.trim(); const initialBalance = parseFloat(document.getElementById('initial-balance').value); if (!name || isNaN(initialBalance) || initialBalance < 0) { alert('Dados inválidos!'); return; } const id = companies.length + 1; companies.push({ id, name, balance: initialBalance, transactions: [] }); localStorage.setItem('companies', JSON.stringify(companies)); document.getElementById('company-message').textContent = `Empresa ${name} cadastrada!`; loadCompanies(); }
+        function registerUser() {
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            if (users.find(user => user.username === username)) {
+                document.getElementById('reg-message').textContent = 'Usuário já existe!';
+                return;
+            }
+            users.push({ username, password });
+            localStorage.setItem('users', JSON.stringify(users));
+            document.getElementById('reg-message').textContent = 'Usuário cadastrado!';
+        }
 
-        function selectCompany() { selectedCompanyId = document.getElementById('company-select').value; const company = companies.find(c => c.id == selectedCompanyId); if (company) { updateTable(company.transactions); calculateTotals(company); } }
+        function loginUser() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                loadCompanies();
+            } else {
+                document.getElementById('login-message').textContent = 'Usuário ou senha inválidos!';
+            }
+        }
 
-        function addTransaction() { if (!selectedCompanyId) { alert('Selecione uma empresa!'); return; } const date = document.getElementById('transaction-date').value; const description = document.getElementById('transaction-description').value.trim(); const service = document.getElementById('transaction-service').value.trim(); const nota = document.getElementById('transaction-nota').value.trim(); const value = parseFloat(document.getElementById('transaction-value').value); const type = document.getElementById('transaction-type').value; if (!date || !description || isNaN(value) || value <= 0 || isNaN(parseInt(nota))) { document.getElementById('transaction-message').textContent = 'Verifique os campos: data válida, descrição, valor positivo e nota numérica.'; return; } const company = companies.find(c => c.id == selectedCompanyId); company.transactions.push({ type, date, description, service, nota, value }); localStorage.setItem('companies', JSON.stringify(companies)); updateTable(company.transactions); calculateTotals(company); document.getElementById('transaction-message').textContent = ''; }
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+        }
 
-        function updateTable(transactions) { const tbody = document.getElementById('transactions-body'); tbody.innerHTML = ''; transactions.forEach((txn, index) => { const row = document.createElement('tr'); row.innerHTML = `<td>${txn.date}</td><td>${txn.description}</td><td>${txn.service}</td><td>${txn.nota}</td><td>${txn.type}</td><td>R$ ${txn.value.toFixed(2)}</td><td><button onclick="deleteTransaction(${index})">Excluir</button></td>`; tbody.appendChild(row); }); }
+        function loadCompanies() {
+            const select = document.getElementById('company-select');
+            select.innerHTML = '<option value="">Selecione uma empresa</option>';
+            companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company.id;
+                option.textContent = company.name;
+                select.appendChild(option);
+            });
+        }
 
-        function calculateTotals(company) { let totalBalance = company.balance; let totalSpent = company.transactions.filter(t => t.type === 'compra').reduce((sum, t) => sum + t.value, 0); let totalAdded = company.transactions.filter(t => t.type === 'saldo').reduce((sum, t) => sum + t.value, 0); let totalAbated = company.transactions.filter(t => t.type === 'abate').reduce((sum, t) => sum + t.value, 0); totalBalance += totalAdded - totalSpent - totalAbated; document.getElementById('total-balance').textContent = `Saldo Total: R$ ${totalBalance.toFixed(2)}`; document.getElementById('total-spent').textContent = `Gastos Totais: R$ ${totalSpent.toFixed(2)}`; }
+        function addCompany() {
+            const name = document.getElementById('company-name').value.trim();
+            const initialBalance = parseFloat(document.getElementById('initial-balance').value);
+            if (!name || isNaN(initialBalance) || initialBalance < 0) {
+                document.getElementById('company-message').textContent = 'Dados inválidos!';
+                return;
+            }
+            const id = companies.length + 1;
+            companies.push({ id, name, balance: initialBalance, transactions: [] });
+            localStorage.setItem('companies', JSON.stringify(companies));
+            document.getElementById('company-message').textContent = `Empresa ${name} cadastrada!`;
+            loadCompanies();
+        }
 
-        function filterByPeriod() { if (!selectedCompanyId) { alert('Selecione uma empresa!'); return; } const period = document.getElementById('period-filter').value; const company = companies.find(c => c.id == selectedCompanyId); const filtered = company.transactions.filter(t => t.date.startsWith(period)); const totalPeriodSpent = filtered.filter(t => t.type === 'compra').reduce((sum, t) => sum + t.value, 0); document.getElementById('period-report').textContent = `Gastos no período ${period}: R$ ${totalPeriodSpent.toFixed(2)}`; }
+        function selectCompany() {
+            selectedCompanyId = document.getElementById('company-select').value;
+            const company = companies.find(c => c.id == selectedCompanyId);
+            if (company) {
+                updateTable(company.transactions);
+                calculateTotals(company);
+            }
+        }
 
-        function exportToCSV() { if (!selectedCompanyId) { alert('Selecione uma empresa!'); return; } const company = companies.find(c => c.id == selectedCompanyId); let csvContent = "data:text/csv;charset=utf-8,Data,Descrição,Serviços,Nota Fiscal,Tipo,Valor\n"; company.transactions.forEach(t => { csvContent += `${t.date},${t.description},${t.service},${t.nota},${t.type},${t.value}\n`; }); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", `${company.name}_transacoes.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+        function addTransaction() {
+            if (!selectedCompanyId) {
+                document.getElementById('transaction-message').textContent = 'Selecione uma empresa primeiro!';
+                return;
+            }
+            const date = document.getElementById('transaction-date').value;
+            const description = document.getElementById('transaction-description').value.trim();
+            const service = document.getElementById('transaction-service').value.trim();
+            const nota = document.getElementById('transaction-nota').value.trim();
+            const value = parseFloat(document.getElementById('transaction-value').value);
+            const type = document.getElementById('transaction-type').value;
+            if (!date || !description || isNaN(value) || value <= 0 || isNaN(parseInt(nota))) {
+                document.getElementById('transaction-message').textContent = 'Verifique os campos: data válida, descrição, valor positivo e nota numérica.';
+                return;
+            }
+            const company = companies.find(c => c.id == selectedCompanyId);
+            company.transactions.push({ type, date, description, service, nota, value });
+            localStorage.setItem('companies', JSON.stringify(companies));
+            updateTable(company.transactions);
+            calculateTotals(company);
+            document.getElementById('transaction-message').textContent = '';
+        }
 
-        function deleteTransaction(index) { if (!selectedCompanyId) return; const company = companies.find(c => c.id == selectedCompanyId); if (confirm('Excluir transação?')) { company.transactions.splice(index, 1); localStorage.setItem('companies', JSON.stringify(companies)); updateTable(company.transactions); calculateTotals(company); } }
-
-        function resetData() { localStorage.removeItem('companies'); companies = []; loadCompanies(); alert('Dados resetados!'); }
-    </script>
-</body>
-</html>
+        function updateTable(transactions) {
+            const tbody = document.getElementById('transactions-body');
+            tbody.innerHTML = ''; ⬤
