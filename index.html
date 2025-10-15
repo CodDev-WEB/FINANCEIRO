@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão Financeira</title>
+    <style>
+        /* Estilos CSS simples */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .hidden { display: none; } /* Para esconder elementos */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table, th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { margin: 5px; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Gestão Financeira</h1>
+
+        <!-- Seção de Login e Cadastro -->
+        <div id="auth-section">
+            <h2>Login ou Cadastro</h2>
+            <button onclick="showRegister()">Cadastrar Novo Usuário</button>
+            <button onclick="showLogin()">Fazer Login</button>
+
+            <!-- Formulário de Cadastro -->
+            <div id="register-form" class="hidden">
+                <h3>Cadastrar Usuário</h3>
+                <input type="text" id="reg-username" placeholder="Nome de Usuário" required>
+                <input type="password" id="reg-password" placeholder="Senha" required>
+                <button onclick="registerUser()">Cadastrar</button>
+                <p id="reg-message" class="error"></p>
+            </div>
+
+            <!-- Formulário de Login -->
+            <div id="login-form" class="hidden">
+                <h3>Fazer Login</h3>
+                <input type="text" id="login-username" placeholder="Nome de Usuário" required>
+                <input type="password" id="login-password" placeholder="Senha" required>
+                <button onclick="loginUser()">Entrar</button>
+                <p id="login-message" class="error"></p>
+            </div>
+        </div>
+
+        <!-- Dashboard Principal (apenas após login) -->
+        <div id="dashboard" class="hidden">
+            <h2>Dashboard de Gestão Financeira</h2>
+            <button onclick="logout()">Sair</button>
+
+            <!-- Cadastro de Empresa -->
+            <h3>Cadastrar Empresa</h3>
+            <input type="text" id="company-name" placeholder="Nome da Empresa" required>
+            <input type="number" id="initial-balance" placeholder="Saldo Inicial" required>
+            <button onclick="addCompany()">Cadastrar Empresa</button>
+            <p id="company-message"></p>
+
+            <!-- Formulários de Gestão Financeira -->
+            <h3>Adicionar Transação</h3>
+            <select id="transaction-type">
+                <option value="compra">Compra (Gasto)</option>
+                <option value="saldo">Adicionar Saldo</option>
+                <option value="abate">Abater Valor</option>
+            </select>
+            <input type="date" id="transaction-date" required>
+            <input type="text" id="transaction-description" placeholder="Descrição" required>
+            <input type="number" id="transaction-value" placeholder="Valor" required>
+            <button onclick="addTransaction()">Adicionar</button>
+
+            <!-- Tabela de Transações (vinculada à "planilha") -->
+            <h3>Controle de Gastos</h3>
+            <table id="transactions-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-body"></tbody>
+            </table>
+            <p id="total-balance">Saldo Total: R$ 0.00</p>
+            <p id="total-spent">Gastos Totais: R$ 0.00</p>
+
+            <!-- Relatórios por Período -->
+            <h3>Relatório de Gastos por Período</h3>
+            <input type="month" id="period-filter" onchange="filterByPeriod()">
+            <p id="period-report"></p>
+
+            <!-- Exportar para CSV -->
+            <button onclick="exportToCSV()">Exportar para CSV (Planilha)</button>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let currentUser = null;
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        let company = JSON.parse(localStorage.getItem('company')) || null;
+
+        // Funções de Autenticação
+        function showRegister() {
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        }
+
+        function registerUser() {
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            
+            if (users.find(user => user.username === username)) {
+                document.getElementById('reg-message').textContent = 'Usuário já existe!';
+                return;
+            }
+
+            users.push({ username, password });  // Em um sistema real, use hashing para senhas
+            localStorage.setItem('users', JSON.stringify(users));
+            document.getElementById('reg-message').textContent = 'Usuário cadastrado!';
+        }
+
+        function loginUser() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                loadData();  // Carrega dados ao logar
+            } else {
+                document.getElementById('login-message').textContent = 'Usuário ou senha inválidos!';
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+            transactions = [];  // Limpa transações (opcional)
+            localStorage.removeItem('transactions');
+            updateTable();
+        }
+
+        // Funções de Gestão Financeira
+        function addCompany() {
+            const name = document.getElementById('company-name').value;
+            const initialBalance = parseFloat(document.getElementById('initial-balance').value);
+            company = { name, balance: initialBalance };
+            localStorage.setItem('company', JSON.stringify(company));
+            document.getElementById('company-message').textContent = `Empresa ${name} cadastrada com saldo inicial R$ ${initialBalance.toFixed(2)}`;
+        }
+
+        function addTransaction() {
+            const type = document.getElementById('transaction-type').value;
+            const date = document.getElementById('transaction-date').value;
+            const description = document.getElementById('transaction-description').value;
+            const value = parseFloat(document.getElementById('transaction-value').value);
+
+            if (isNaN(value) || value <= 0) {
+                alert('Valor inválido!');
+                return;
+            }
+
+            transactions.push({ type, date, description, value });
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            updateTable();  // Atualiza a tabela
+            calculateTotals();  // Recalcula totais
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('transactions-body');
+            tbody.innerHTML = '';
+            transactions.forEach((txn, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${txn.date}</td><td>${txn.description}</td><td>${txn.type}</td><td>R$ ${txn.value.toFixed(2)}</td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        function calculateTotals() {
+            let totalBalance = company ? company.balance : 0;
+            let totalSpent = transactions.filter(txn => txn.type === 'compra').reduce((sum, txn) => sum + txn.value, 0);
+            let totalAdded = transactions.filter(txn => txn.type === 'saldo').reduce((sum, txn) => sum + txn.value, 0);
+            let totalAbated = transactions.filter(txn => txn.type === 'abate').reduce((sum, txn) => sum + txn.value, 0);
+
+            totalBalance += totalAdded - totalSpent - totalAbated;  // Lógica simples: saldo inicial + adições - gastos - abates
+
+            document.getElementById('total-balance').textContent = `Saldo Total: R$ ${totalBalance.toFixed(2)}`;
+            document.getElementById('total-spent').textContent = `Gastos Totais: R$ ${totalSpent.toFixed(2)}`;
+        }
+
+        function filterByPeriod() {
+            const period = document.getElementById('period-filter').value;  // Ex.: 2023-10
+            const filtered = transactions.filter(txn => txn.date.startsWith(period));
+            const totalPeriodSpent = filtered.filter(txn => txn.type === 'compra').reduce((sum, txn) => sum + txn.value, 0);
+            document.getElementById('period-report').textContent = `Gastos no período ${period}: R$ ${totalPeriodSpent.toFixed(2)}`;
+        }
+
+        function loadData() {
+            updateTable();
+            calculateTotals();
+        }
+
+        // Exportar para CSV
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Data,Descrição,Tipo,Valor\n";
+            transactions.forEach(txn => {
+                csvContent += `${txn.date},${txn.description},${txn.type},${txn.value}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "transacoes.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
