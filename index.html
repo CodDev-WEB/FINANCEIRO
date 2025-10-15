@@ -5,17 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão Financeira Avançado</title>
     <style>
-        /* Estilos CSS simples */
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: auto; }
+        /* Variáveis CSS para uma paleta profissional */
+        :root {
+            --primary-color: #4CAF50;  /* Verde para botões e destaques */
+            --secondary-color: #2196F3;  /* Azul para links e headers */
+            --background-color: #f4f4f4;  /* Fundo claro */
+            --text-color: #333;  /* Texto escuro */
+            --error-color: #f44336;  /* Vermelho para erros */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  /* Fonte moderna e legível */
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);  /* Sombra para um look profissional */
+            border-radius: 8px;
+        }
+
+        h1, h2, h3 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
         .hidden { display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        table, th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        button { margin: 5px; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        .error { color: red; }
-        .company-select { margin-bottom: 20px; }
+
+        /* Estilos para formulários */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: darken(var(--primary-color), 10%);  /* Efeito hover (use um polyfill se necessário) */
+        }
+
+        .error { color: var(--error-color); }
+
+        /* Tabela estilizada */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        /* Layout responsivo */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            table, form {
+                font-size: 14px;
+            }
+            input, select, button {
+                width: 100%;
+            }
+        }
+
+        /* Estilos específicos para seções */
+        .company-select {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+
+        .dashboard-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--background-color);
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -28,8 +126,7 @@
             <button onclick="showRegister()">Cadastrar Novo Usuário</button>
             <button onclick="showLogin()">Fazer Login</button>
 
-            <!-- Formulário de Cadastro -->
-            <div id="register-form" class="hidden">
+            <div id="register-form" class="hidden dashboard-section">
                 <h3>Cadastrar Usuário</h3>
                 <input type="text" id="reg-username" placeholder="Nome de Usuário" required>
                 <input type="password" id="reg-password" placeholder="Senha" required>
@@ -37,8 +134,7 @@
                 <p id="reg-message" class="error"></p>
             </div>
 
-            <!-- Formulário de Login -->
-            <div id="login-form" class="hidden">
+            <div id="login-form" class="hidden dashboard-section">
                 <h3>Fazer Login</h3>
                 <input type="text" id="login-username" placeholder="Nome de Usuário" required>
                 <input type="password" id="login-password" placeholder="Senha" required>
@@ -47,201 +143,92 @@
             </div>
         </div>
 
-        <!-- Dashboard Principal -->
         <div id="dashboard" class="hidden">
             <h2>Dashboard de Gestão Financeira</h2>
-            <button onclick="logout()">Sair</button>
+            <button onclick="if(confirm('Tem certeza que deseja sair?')) logout();">Sair</button>
 
-            <!-- Cadastro de Empresas -->
-            <h3>Cadastrar Empresa</h3>
-            <input type="text" id="company-name" placeholder="Nome da Empresa" required>
-            <input type="number" id="initial-balance" placeholder="Saldo Inicial" required>
-            <button onclick="addCompany()">Cadastrar Empresa</button>
-            <p id="company-message"></p>
+            <div class="dashboard-section">
+                <h3>Cadastrar Empresa</h3>
+                <input type="text" id="company-name" placeholder="Nome da Empresa" required>
+                <input type="number" id="initial-balance" placeholder="Saldo Inicial" required>
+                <button onclick="addCompany()">Cadastrar Empresa</button>
+                <p id="company-message"></p>
+            </div>
 
-            <!-- Seleção de Empresa -->
-            <h3>Selecione a Empresa</h3>
-            <select id="company-select" onchange="selectCompany()" class="company-select">
-                <option value="">Selecione uma empresa</option> <!-- Opção padrão -->
-            </select>
+            <div class="dashboard-section">
+                <h3>Selecione a Empresa</h3>
+                <select id="company-select" onchange="selectCompany()" class="company-select">
+                    <option value="">Selecione uma empresa</option>
+                </select>
+            </div>
 
-            <!-- Formulários de Gestão Financeira para a empresa selecionada -->
-            <h3>Adicionar Transação para a Empresa Selecionada</h3>
-            <select id="transaction-type">
-                <option value="compra">Compra (Gasto)</option>
-                <option value="saldo">Adicionar Saldo</option>
-                <option value="abate">Abater Valor</option>
-            </select>
-            <input type="date" id="transaction-date" required>
-            <input type="text" id="transaction-description" placeholder="Descrição (o que foi comprado)" required>
-            <input type="text" id="transaction-service" placeholder="Serviços" required>
-            <input type="text" id="transaction-nota" placeholder="Número de Nota Fiscal" required>
-            <input type="number" id="transaction-value" placeholder="Valor" required>
-            <button onclick="addTransaction()">Adicionar Transação</button>
+            <div class="dashboard-section" id="transaction-section">
+                <h3>Adicionar Transação</h3>
+                <select id="transaction-type">
+                    <option value="compra">Compra (Gasto)</option>
+                    <option value="saldo">Adicionar Saldo</option>
+                    <option value="abate">Abater Valor</option>
+                </select>
+                <input type="date" id="transaction-date" required>
+                <input type="text" id="transaction-description" placeholder="Descrição (o que foi comprado)" required>
+                <input type="text" id="transaction-service" placeholder="Serviços" required>
+                <input type="text" id="transaction-nota" placeholder="Número de Nota Fiscal" required>
+                <input type="number" id="transaction-value" placeholder="Valor" min="0" required>
+                <button onclick="addTransaction()">Adicionar Transação</button>
+                <p id="transaction-message" class="error"></p>
+            </div>
 
-            <!-- Tabela de Transações da empresa selecionada -->
-            <h3>Controle de Gastos da Empresa Selecionada</h3>
-            <table id="transactions-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Descrição</th>
-                        <th>Serviços</th>
-                        <th>Nota Fiscal</th>
-                        <th>Tipo</th>
-                        <th>Valor</th>
-                    </tr>
-                </thead>
-                <tbody id="transactions-body"></tbody>
-            </table>
-            <p id="total-balance">Saldo Total: R$ 0.00</p>
-            <p id="total-spent">Gastos Totais: R$ 0.00</p>
+            <div class="dashboard-section">
+                <h3>Transações da Empresa</h3>
+                <table id="transactions-table">
+                    <thead><tr><th>Data</th><th>Descrição</th><th>Serviços</th><th>Nota Fiscal</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr></thead>
+                    <tbody id="transactions-body"></tbody>
+                </table>
+                <p id="total-balance">Saldo Total: R$ 0.00</p>
+                <p id="total-spent">Gastos Totais: R$ 0.00</p>
+            </div>
 
-            <!-- Relatórios por Período para a empresa selecionada -->
-            <h3>Relatório de Gastos por Período</h3>
-            <input type="month" id="period-filter" onchange="filterByPeriod()">
-            <p id="period-report"></p>
+            <div class="dashboard-section">
+                <h3>Relatório de Gastos por Período</h3>
+                <input type="month" id="period-filter" onchange="filterByPeriod()">
+                <p id="period-report"></p>
+            </div>
 
-            <!-- Exportar para CSV -->
             <button onclick="exportToCSV()">Exportar Transações para CSV</button>
+            <button onclick="if(confirm('Resetar todos os dados? Isso não pode ser desfeito!')) resetData();">Resetar Dados</button>
         </div>
     </div>
 
     <script>
-        // Variáveis globais
         let currentUser = null;
-        let companies = JSON.parse(localStorage.getItem('companies')) || [];  // Array de empresas
-        let selectedCompanyId = null;  // ID da empresa selecionada
+        let companies = JSON.parse(localStorage.getItem('companies')) || [];
+        let selectedCompanyId = null;
 
-        // Funções de Autenticação (mantidas iguais)
-        function showRegister() { /* ... (mesmo código anterior) */ }
-        function showLogin() { /* ... */ }
-        function registerUser() { /* ... */ }
-        function loginUser() {
-            // ... (mesmo código)
-            if (user) {
-                currentUser = user;
-                document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                loadCompanies();  // Carrega a lista de empresas ao logar
-            }
-        }
-        function logout() { /* ... */ }
+        function showRegister() { document.getElementById('register-form').classList.remove('hidden'); document.getElementById('login-form').classList.add('hidden'); }
+        function showLogin() { document.getElementById('login-form').classList.remove('hidden'); document.getElementById('register-form').classList.add('hidden'); }
+        function registerUser() { /* Mesmo código anterior */ }
+        function loginUser() { /* Mesmo código */ if (user) { currentUser = user; document.getElementById('auth-section').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); loadCompanies(); } }
+        function logout() { currentUser = null; document.getElementById('dashboard').classList.add('hidden'); document.getElementById('auth-section').classList.remove('hidden'); }
 
-        // Função para carregar e exibir empresas no dropdown
-        function loadCompanies() {
-            const select = document.getElementById('company-select');
-            select.innerHTML = '<option value="">Selecione uma empresa</option>';
-            companies.forEach(company => {
-                const option = document.createElement('option');
-                option.value = company.id;
-                option.textContent = company.name;
-                select.appendChild(option);
-            });
-        }
+        function loadCompanies() { const select = document.getElementById('company-select'); select.innerHTML = '<option value="">Selecione uma empresa</option>'; companies.forEach(c => { const option = document.createElement('option'); option.value = c.id; option.textContent = c.name; select.appendChild(option); }); }
 
-        // Função para adicionar uma nova empresa
-        function addCompany() {
-            const name = document.getElementById('company-name').value;
-            const initialBalance = parseFloat(document.getElementById('initial-balance').value);
-            const id = companies.length + 1;  // Gera um ID simples
-            companies.push({ id, name, balance: initialBalance, transactions: [] });
-            localStorage.setItem('companies', JSON.stringify(companies));
-            document.getElementById('company-message').textContent = `Empresa ${name} cadastrada!`;
-            loadCompanies();  // Atualiza o dropdown
-        }
+        function addCompany() { const name = document.getElementById('company-name').value.trim(); const initialBalance = parseFloat(document.getElementById('initial-balance').value); if (!name || isNaN(initialBalance) || initialBalance < 0) { alert('Dados inválidos!'); return; } const id = companies.length + 1; companies.push({ id, name, balance: initialBalance, transactions: [] }); localStorage.setItem('companies', JSON.stringify(companies)); document.getElementById('company-message').textContent = `Empresa ${name} cadastrada!`; loadCompanies(); }
 
-        // Função para selecionar uma empresa
-        function selectCompany() {
-            selectedCompanyId = document.getElementById('company-select').value;
-            const selectedCompany = companies.find(company => company.id == selectedCompanyId);
-            if (selectedCompany) {
-                updateTable(selectedCompany.transactions);  // Atualiza a tabela com transações da empresa
-                calculateTotals(selectedCompany);  // Calcula totais para a empresa
-            }
-        }
+        function selectCompany() { selectedCompanyId = document.getElementById('company-select').value; const company = companies.find(c => c.id == selectedCompanyId); if (company) { updateTable(company.transactions); calculateTotals(company); } }
 
-        // Função para adicionar transação à empresa selecionada
-        function addTransaction() {
-            if (!selectedCompanyId) {
-                alert('Selecione uma empresa primeiro!');
-                return;
-            }
+        function addTransaction() { if (!selectedCompanyId) { alert('Selecione uma empresa!'); return; } const date = document.getElementById('transaction-date').value; const description = document.getElementById('transaction-description').value.trim(); const service = document.getElementById('transaction-service').value.trim(); const nota = document.getElementById('transaction-nota').value.trim(); const value = parseFloat(document.getElementById('transaction-value').value); const type = document.getElementById('transaction-type').value; if (!date || !description || isNaN(value) || value <= 0 || isNaN(parseInt(nota))) { document.getElementById('transaction-message').textContent = 'Verifique os campos: data válida, descrição, valor positivo e nota numérica.'; return; } const company = companies.find(c => c.id == selectedCompanyId); company.transactions.push({ type, date, description, service, nota, value }); localStorage.setItem('companies', JSON.stringify(companies)); updateTable(company.transactions); calculateTotals(company); document.getElementById('transaction-message').textContent = ''; }
 
-            const type = document.getElementById('transaction-type').value;
-            const date = document.getElementById('transaction-date').value;
-            const description = document.getElementById('transaction-description').value;  // O que foi comprado
-            const service = document.getElementById('transaction-service').value;  // Serviços
-            const nota = document.getElementById('transaction-nota').value;  // Nota Fiscal
-            const value = parseFloat(document.getElementById('transaction-value').value);
+        function updateTable(transactions) { const tbody = document.getElementById('transactions-body'); tbody.innerHTML = ''; transactions.forEach((txn, index) => { const row = document.createElement('tr'); row.innerHTML = `<td>${txn.date}</td><td>${txn.description}</td><td>${txn.service}</td><td>${txn.nota}</td><td>${txn.type}</td><td>R$ ${txn.value.toFixed(2)}</td><td><button onclick="deleteTransaction(${index})">Excluir</button></td>`; tbody.appendChild(row); }); }
 
-            if (isNaN(value) || value <= 0) {
-                alert('Valor inválido!');
-                return;
-            }
+        function calculateTotals(company) { let totalBalance = company.balance; let totalSpent = company.transactions.filter(t => t.type === 'compra').reduce((sum, t) => sum + t.value, 0); let totalAdded = company.transactions.filter(t => t.type === 'saldo').reduce((sum, t) => sum + t.value, 0); let totalAbated = company.transactions.filter(t => t.type === 'abate').reduce((sum, t) => sum + t.value, 0); totalBalance += totalAdded - totalSpent - totalAbated; document.getElementById('total-balance').textContent = `Saldo Total: R$ ${totalBalance.toFixed(2)}`; document.getElementById('total-spent').textContent = `Gastos Totais: R$ ${totalSpent.toFixed(2)}`; }
 
-            const transaction = { type, date, description, service, nota, value };
-            const company = companies.find(c => c.id == selectedCompanyId);
-            company.transactions.push(transaction);
-            localStorage.setItem('companies', JSON.stringify(companies));  // Salva no localStorage
-            updateTable(company.transactions);  // Atualiza tabela
-            calculateTotals(company);  // Recalcula totais
-        }
+        function filterByPeriod() { if (!selectedCompanyId) { alert('Selecione uma empresa!'); return; } const period = document.getElementById('period-filter').value; const company = companies.find(c => c.id == selectedCompanyId); const filtered = company.transactions.filter(t => t.date.startsWith(period)); const totalPeriodSpent = filtered.filter(t => t.type === 'compra').reduce((sum, t) => sum + t.value, 0); document.getElementById('period-report').textContent = `Gastos no período ${period}: R$ ${totalPeriodSpent.toFixed(2)}`; }
 
-        // Função para atualizar a tabela com transações da empresa
-        function updateTable(transactions) {
-            const tbody = document.getElementById('transactions-body');
-            tbody.innerHTML = '';
-            transactions.forEach(txn => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${txn.date}</td><td>${txn.description}</td><td>${txn.service}</td><td>${txn.nota}</td><td>${txn.type}</td><td>R$ ${txn.value.toFixed(2)}</td>`;
-                tbody.appendChild(row);
-            });
-        }
+        function exportToCSV() { if (!selectedCompanyId) { alert('Selecione uma empresa!'); return; } const company = companies.find(c => c.id == selectedCompanyId); let csvContent = "data:text/csv;charset=utf-8,Data,Descrição,Serviços,Nota Fiscal,Tipo,Valor\n"; company.transactions.forEach(t => { csvContent += `${t.date},${t.description},${t.service},${t.nota},${t.type},${t.value}\n`; }); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", `${company.name}_transacoes.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
 
-        // Função para calcular totais da empresa selecionada
-        function calculateTotals(company) {
-            let totalBalance = company.balance;
-            let totalSpent = company.transactions.filter(txn => txn.type === 'compra').reduce((sum, txn) => sum + txn.value, 0);
-            let totalAdded = company.transactions.filter(txn => txn.type === 'saldo').reduce((sum, txn) => sum + txn.value, 0);
-            let totalAbated = company.transactions.filter(txn => txn.type === 'abate').reduce((sum, txn) => sum + txn.value, 0);
-            totalBalance += totalAdded - totalSpent - totalAbated;
-            document.getElementById('total-balance').textContent = `Saldo Total: R$ ${totalBalance.toFixed(2)}`;
-            document.getElementById('total-spent').textContent = `Gastos Totais: R$ ${totalSpent.toFixed(2)}`;
-        }
+        function deleteTransaction(index) { if (!selectedCompanyId) return; const company = companies.find(c => c.id == selectedCompanyId); if (confirm('Excluir transação?')) { company.transactions.splice(index, 1); localStorage.setItem('companies', JSON.stringify(companies)); updateTable(company.transactions); calculateTotals(company); } }
 
-        // Função para filtrar por período (apenas para a empresa selecionada)
-        function filterByPeriod() {
-            if (!selectedCompanyId) {
-                alert('Selecione uma empresa primeiro!');
-                return;
-            }
-            const period = document.getElementById('period-filter').value;
-            const company = companies.find(c => c.id == selectedCompanyId);
-            const filtered = company.transactions.filter(txn => txn.date.startsWith(period));
-            const totalPeriodSpent = filtered.filter(txn => txn.type === 'compra').reduce((sum, txn) => sum + txn.value, 0);
-            document.getElementById('period-report').textContent = `Gastos no período ${period}: R$ ${totalPeriodSpent.toFixed(2)}`;
-        }
-
-        // Função para exportar transações da empresa selecionada para CSV
-        function exportToCSV() {
-            if (!selectedCompanyId) {
-                alert('Selecione uma empresa primeiro!');
-                return;
-            }
-            const company = companies.find(c => c.id == selectedCompanyId);
-            let csvContent = "data:text/csv;charset=utf-8,Data,Descrição,Serviços,Nota Fiscal,Tipo,Valor\n";
-            company.transactions.forEach(txn => {
-                csvContent += `${txn.date},${txn.description},${txn.service},${txn.nota},${txn.type},${txn.value}\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `${company.name}_transacoes.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        function resetData() { localStorage.removeItem('companies'); companies = []; loadCompanies(); alert('Dados resetados!'); }
     </script>
 </body>
 </html>
